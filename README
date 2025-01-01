@@ -1,0 +1,7 @@
+اسم الطالب : مؤيد الميداني 
+المشروع يحوي ERD
+
+
+composer install 
+php artisan migrate
+php artisan db:seed
