@@ -1,6 +1,6 @@
 اسم الطالب : مؤيد الميداني 
-المشروع يحوي ERD
-
+المشروع يحوي ملف  الERD
+المشروع يحوي ملف الapi collection
 
 composer install 
 php artisan migrate
