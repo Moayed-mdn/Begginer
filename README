@@ -1,0 +1,9 @@
+اسم الطالب : مؤيد الميداني 
+المشروع يحوي ملف  الERD
+المشروع يحوي ملف الapi collection
+
+composer install 
+cp .env.example .env
+# change the database connection from SQLite to MySQL, remove comments from the database configuration, and rename DB_DATABASE as desired
+php artisan migrate
+php artisan db:seed
