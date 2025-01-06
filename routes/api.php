@@ -30,5 +30,3 @@ Route::controller(warehouseOwnerController::class)->middleware('auth:sanctum')->
     Route::put('/orders/{order}/status','updateStatus');
 });
 
-
-
