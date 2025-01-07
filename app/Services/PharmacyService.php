@@ -70,7 +70,6 @@ class PharmacyService
             $message="created unsuccessfully completed,something wrong happened";
             if($e->getCode()==0)
                 $message=$e->getMessage();
-                
             return response()->json(["message"=>$message,"line"=>$e->getLine()],500);
                 
         }

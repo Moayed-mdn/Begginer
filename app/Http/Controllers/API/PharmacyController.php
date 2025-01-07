@@ -46,8 +46,8 @@ class PharmacyController extends Controller
 
         try{
             request()->validate([ 
-                'phone_number'=>['required'],
-                'password'=>['required'],
+                'phone_number'=>['required','numeric',new SyrianPhoneNumber],
+                'password'=>['required',"string"],
             ]);
         }
         catch(\Illuminate\Validation\ValidationException $e){
@@ -84,21 +84,22 @@ class PharmacyController extends Controller
     public function createOrder(Request $request)
     {
         
-        $request->validate([
+        try {
+        
+        
+        
+            $request->validate([
             "is_paid"=>['nullable'],
             "status"=>['nullable'],
             "medicationIdWithQuantity"=>"required"
-        ]);
+            ]);
         
       
 
 
-        try {
             
             $user = Auth::user();
-            if (!$user) {
-                return response()->json(['error' => 'you are working on  laravel 11 , it has some trouble , dont use guard'], 500); 
-            }
+         
 
             $request["pharmacy_id"]=$user->id;
 
@@ -109,15 +110,13 @@ class PharmacyController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Something went wrong'], 500); // Generic error
+            return response()->json(['error' => 'Something went wrong'], 500); 
         }
     }
     
-    public function toggleFavorite(Request $request){
-        $pharmacy_id=Auth::guard("pharmacy")->user()->id;
-        if(!$pharmacy_id){
-            return response()->json(['error'=>"dont use guard there is a problem in laravel 11 "],500);
-        }
+    public function toggleFavorite(Request $request,Pharmacy $pharmacy){
+        $pharmacy_id=$pharmacy->id;
+       
 
         $request->validate([
             "medication_id"=>"required"
@@ -151,52 +150,47 @@ class PharmacyController extends Controller
         return response()->json(['msg'=>"added it  to favorites successfully"],201);
     }
 
+    public function getFavoriteMedications(Request $request,Pharmacy $pharmacy){
+        
+        $favoriteMedications=$pharmacy->favoriteMedications;
+
+        return response()->json(['favoriteMedications'=>$favoriteMedications],200);
+
+    }
+    
 
     public function getOrders(Request $request){
         
-        $pharmacy=Auth::guard('pharmacy')->user();
-        if(!$pharmacy)
-            return response()->json(['error'=>'dont use guard, there is a  problem in laravel 11'],500);
+        $pharmacy=Auth::user();
 
-        $orders=$pharmacy->orders->get();
+        $orders=$pharmacy->orders;
         
         return response()->json(["orders"=>$orders],200);
 
     }
 
     public function getOrder(Request $request){
-
+        
+        try{
         $request->validate([
             'order_id'=>'required|exists:orders,id',
         ]);
 
-        try{
-            $order= Order::findOrFail($request->order_id);
+            
+            $order= Order::find($request->order_id);
 
             return response()->json(["order"=>$order],200);
 
         }
-        catch(\Illuminate\Database\Eloquent\ModelNotFoundException $e){
-            return response()->json(["error"=>"order not found"],404);
+        catch(\Illuminate\Validation\ValidationException $e){
+            return response()->json(["error"=>$e->getMessage()],404);
         }
         catch(\Exception $e){ 
-            return response()->json(['msg'=>"an unexpected error occurred"],500);
+            return response()->json(['error'=>$e->getMessage()],500);
         }
     }
 
-    public function getFavoriteMedications(Request $request){
-
-        $pharmacy=Auth::guard("pharmacy")->user;
-
-        if(!$pharmacy)
-            return response()->json(["error"=>"dont use guard, there is an error in laravel 11"],500);
-
-        $favoriteMedications=$pharmacy->favoriteMedications();
-
-        return response()->json(['favoriteMedications'=>$favoriteMedications],200);
-
-    }
-    
+   
 
     public function getMedications(){
         $medications=Medication::all();
@@ -204,14 +198,6 @@ class PharmacyController extends Controller
 
     }
 
-
-    public function testToken(){
-        $pharmacy=Auth::user();
-        if($pharmacy)
-            return response()->json(['msg'=>"ok"],200);
-        
-        return response()->json(["error"=>"unAuthorized"],401);
-    }
 
 
 }

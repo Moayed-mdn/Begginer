@@ -9,12 +9,11 @@ use App\Http\Controllers\API\warehouseOwnerController;
 Route::post('/pharmacy/register',[PharmacyController::class,'store']);
 Route::post('/pharmacy/login',[PharmacyController::class,'authenticate']);
 Route::controller(PharmacyController::class)->middleware('auth:sanctum')->group(function(){
-    Route::post('/pharmacy/orders',"createOrder");
+    Route::post('/pharmacy/add-order',"createOrder");
     Route::get('/pharmacy/orders','getOrders');
     Route::post('/pharmacy/order',"getOrder");
     Route::get('/pharmacy/{pharmacy}/favorite/medications',"getFavoriteMedications");
-    Route::post('/pharmacy/{pharmacy}/favorite/medications','toggleFavorite');
-    Route::get('/pharmacy/test',"testToken");
+    Route::post('/pharmacy/{pharmacy}/favorite/medication','toggleFavorite');
     Route::get('/pharmacy/medications','getMedications');
 });
 
