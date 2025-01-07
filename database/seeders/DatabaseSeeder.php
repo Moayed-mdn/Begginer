@@ -26,6 +26,6 @@ class DatabaseSeeder extends Seeder
             $user->delete();
 
         WarehouseOwner::create(["id"=>"1",'username'=>"admin@gmail.com",'password'=>"123456"]);        
-        Medication::factory(5)->create();
+        Medication::factory(10)->create();
     }
 }
