@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Medication;
 use App\Models\FavoriteMedication;
+use App\Rules\SyrianPhoneNumber;
 class PharmacyController extends Controller
 {
     
@@ -18,34 +19,28 @@ class PharmacyController extends Controller
 
         try{
             $validator= request()->validate([ 
-                'phone_number'=>['required',"string",'unique:pharmacies,phone_number'], 
-                'password'=>['required',"string"],
+                'phone_number'=>['required'," numeric",'unique:pharmacies,phone_number',new SyrianPhoneNumber], 
+                'password'=>['required',"string",'min:3','confirmed'],
                 'fcm_token'=>['nullable','string'],
-                
+            ],[
+                "phone_number.required"=>"phone number is required "#(just for learning)
             ]);
-        }
-        catch(\Illuminate\Validation\ValidationException $e){
-            return response()->json(["error"=>$e->errors()],422);
-        }
-        
       
-        try{
-
             $validator['password']=bcrypt(request('password'));
 
             $pharmacy =  Pharmacy::create($validator);
             $token=  $pharmacy->createToken('MyApp')->plainTextToken;
             
 
+        return response()->json(["msg"=>"Pharmacy successfully created","user"=>$pharmacy,"token"=>$token],201);
+        }
+        catch(\Illuminate\Validation\ValidationException $e){
+            return response()->json(["error"=>$e->errors()],422);
         }
         catch(\Exception $e){
             return response()->json(['msgg'=>$e->getMessage()],500);
         }
-
-        return response()->json(["msg"=>"Pharmacy successfully created","user"=>$pharmacy,"token"=>$token],201);
     }
-
-
     public function authenticate(){
 
 
