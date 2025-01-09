@@ -61,7 +61,7 @@
 									"formdata": [
 										{
 											"key": "phone_number",
-											"value": "0936123456",
+											"value": "0912345678",
 											"type": "text"
 										},
 										{
@@ -108,7 +108,7 @@
 									"bearer": [
 										{
 											"key": "token",
-											"value": "4|4cBAnDfon9ANR8rF7kC9beXZqRc5oG0i8Afaep3sdce5d354",
+											"value": "2|wwpXxQN02CROALoF6mri5qpGotGn8vrGn2nJDsCm79c035cf",
 											"type": "string"
 										}
 									]
@@ -123,7 +123,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"medicationIdWithQuantity\": [{\"quantity\":10}, {\"quantity\":10}, {\"quantity\":3}]\n    \n}",
+									"raw": "{\n    \"medicationIdWithQuantity\": [{\"medicationId\":1,\"quantity\":10}, {\"medicationId\":2,\"quantity\":10}, {\"medicationId\":5,\"quantity\":3}]\n    \n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -323,14 +323,14 @@
 					"name": "medication",
 					"item": [
 						{
-							"name": "{{url}}/medication",
+							"name": "medication",
 							"request": {
 								"auth": {
 									"type": "bearer",
 									"bearer": [
 										{
 											"key": "token",
-											"value": "3|gVg2EDvKDEI8ZUKSkyAp6FI6d7QtJEhSceuJbPRbaf522378ttttt",
+											"value": "{{warehousetoken}}",
 											"type": "string"
 										}
 									]
@@ -356,14 +356,14 @@
 							"response": []
 						},
 						{
-							"name": "{{url}}/medication",
+							"name": "medication",
 							"request": {
 								"auth": {
 									"type": "bearer",
 									"bearer": [
 										{
 											"key": "token",
-											"value": "3|gVg2EDvKDEI8ZUKSkyAp6FI6d7QtJEhSceuJbPRbaf522378",
+											"value": "{{warehousetoken}}",
 											"type": "string"
 										}
 									]
@@ -423,14 +423,14 @@
 							"response": []
 						},
 						{
-							"name": "{{url}}/expiredMedication",
+							"name": "expiredMedication",
 							"request": {
 								"auth": {
 									"type": "bearer",
 									"bearer": [
 										{
 											"key": "token",
-											"value": "3|gVg2EDvKDEI8ZUKSkyAp6FI6d7QtJEhSceuJbPRbaf522378",
+											"value": "{{warehousetoken}}",
 											"type": "string"
 										}
 									]
@@ -455,7 +455,7 @@
 					"name": "auth",
 					"item": [
 						{
-							"name": "{{url}}/login",
+							"name": "login",
 							"request": {
 								"method": "POST",
 								"header": [],
@@ -497,6 +497,48 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "current_username",
+											"value": "admin@gmail.com",
+											"type": "text"
+										},
+										{
+											"key": "current_password",
+											"value": "123456",
+											"type": "text"
+										},
+										{
+											"key": "new_username",
+											"value": "admin123@gmail.com",
+											"type": "text"
+										},
+										{
+											"key": "new_password",
+											"value": "12345",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{url}}/update",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"update"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -504,14 +546,14 @@
 					"name": "order",
 					"item": [
 						{
-							"name": "{{url}}/orders",
+							"name": "orders",
 							"request": {
 								"auth": {
 									"type": "bearer",
 									"bearer": [
 										{
 											"key": "token",
-											"value": "3|gVg2EDvKDEI8ZUKSkyAp6FI6d7QtJEhSceuJbPRbaf522378",
+											"value": "{{warehousetoken}}",
 											"type": "string"
 										}
 									]
@@ -531,14 +573,14 @@
 							"response": []
 						},
 						{
-							"name": "{{url}}/orders/1/orderDetails",
+							"name": "orderDetails",
 							"request": {
 								"auth": {
 									"type": "bearer",
 									"bearer": [
 										{
 											"key": "token",
-											"value": "3|gVg2EDvKDEI8ZUKSkyAp6FI6d7QtJEhSceuJbPRbaf522378",
+											"value": "{{warehousetoken}}",
 											"type": "string"
 										}
 									]
@@ -560,14 +602,14 @@
 							"response": []
 						},
 						{
-							"name": "{{url}}/orders/1/pay",
+							"name": "pay",
 							"request": {
 								"auth": {
 									"type": "bearer",
 									"bearer": [
 										{
 											"key": "token",
-											"value": "3|gVg2EDvKDEI8ZUKSkyAp6FI6d7QtJEhSceuJbPRbaf522378",
+											"value": "{{warehousetoken}}",
 											"type": "string"
 										}
 									]
@@ -585,13 +627,13 @@
 									]
 								},
 								"url": {
-									"raw": "{{url}}/orders/1/pay",
+									"raw": "{{url}}/orders/2/pay",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"orders",
-										"1",
+										"2",
 										"pay"
 									]
 								}
@@ -599,14 +641,14 @@
 							"response": []
 						},
 						{
-							"name": "{{url}}/orders/1/status",
+							"name": "status",
 							"request": {
 								"auth": {
 									"type": "bearer",
 									"bearer": [
 										{
 											"key": "token",
-											"value": "3|gVg2EDvKDEI8ZUKSkyAp6FI6d7QtJEhSceuJbPRbaf522378",
+											"value": "{{warehousetoken}}",
 											"type": "string"
 										}
 									]
@@ -618,19 +660,19 @@
 									"urlencoded": [
 										{
 											"key": "status",
-											"value": "sent",
+											"value": "d",
 											"type": "text"
 										}
 									]
 								},
 								"url": {
-									"raw": "{{url}}/orders/1/status",
+									"raw": "{{url}}/orders/2/status",
 									"host": [
 										"{{url}}"
 									],
 									"path": [
 										"orders",
-										"1",
+										"2",
 										"status"
 									]
 								}

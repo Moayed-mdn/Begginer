@@ -41,6 +41,7 @@ class PharmacyController extends Controller
             return response()->json(['msgg'=>$e->getMessage()],500);
         }
     }
+ 
     public function authenticate(){
 
 
@@ -81,8 +82,7 @@ class PharmacyController extends Controller
         
     }
 
-    public function createOrder(Request $request)
-    {
+    public function createOrder(Request $request){
         
         try {
         
@@ -189,9 +189,7 @@ class PharmacyController extends Controller
             return response()->json(['error'=>$e->getMessage()],500);
         }
     }
-
-   
-
+    
     public function getMedications(){
         $medications=Medication::all();
         return response()->json(['medications'=>$medications]);

@@ -11,11 +11,12 @@ use Dotenv\Repository\RepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Models\Medication;
+use App\Rules\OrderStatusRule;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-
-
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class warehouseOwnerController extends Controller
 {
@@ -33,7 +34,7 @@ class warehouseOwnerController extends Controller
             ]);
         }
         catch(\Illuminate\Validation\ValidationException $e){
-            return response()->json(['msg'=>$e->errors()],422);
+            return response()->json(['error'=>$e->errors()],422);
         }
 
         $credentials=request()->only('username','password');
@@ -61,6 +62,36 @@ class warehouseOwnerController extends Controller
         return  response()->json(['error'=>"your credentials do not match with our records"],401);// unauthorized
         
     }
+    public function update(){
+        try{
+            request()->validate([ 
+                'current_username'=>['required','exists:warehouse_owners,username'],
+                'current_password'=>[''],
+                "new_username"=>['required','email'],
+                'new_password'=>['required','min:3']
+            ]);
+            $owner=WarehouseOwner::where('username',request()->current_username)->first();
+           if(!Hash::check(request()->current_password,$owner->password)){
+               return response()->json(['error'=>'the password isn\'t correct  '],422);
+            }
+            
+            $owner->username=request()->new_username;
+            $owner->password=Hash::make(request()->new_password);
+            $owner->save();
+        
+            return response()->json(['msg'=>'updated successfully'],200);
+
+        }
+        catch(\Illuminate\Validation\ValidationException $e){
+            return response()->json(['error'=>$e->errors()],422);
+        }
+        catch(\Exception $e){
+            return response()->json(['error'=>$e->getMessage()],500);
+        }
+
+
+    }
+
     public function getMedications(){
         try{
 
@@ -78,7 +109,7 @@ class warehouseOwnerController extends Controller
 
             $user=Auth::user();
             $currentDate=date("Y-m-d"); 
-            $expiredMedications=Medication::Where('warehouse_owner_id',$user->id)->Where("expiration_date","<",$currentDate)->get();
+            $expiredMedications=Medication::Where('warehouse_owner_id',$user->id)->Where("expiration_date","<=",$currentDate)->get();
             return response()->json(["expiredMedications"=>$expiredMedications]);
         }
         catch(\Exception $e){
@@ -90,7 +121,7 @@ class warehouseOwnerController extends Controller
         try{
 
             $orders =Order::all();
-            return response()->json(["orders"=>$orders],201);        
+            return response()->json(["orders"=>$orders],200);        
         }
         catch(\Exception $e){
             return response()->json(["error"=>$e->getMessage()],500);
@@ -100,32 +131,32 @@ class warehouseOwnerController extends Controller
 
         try{
 
-            request()->validate([
-                "scientific_name"=>["required","string"],
-                "trade_name"=>["required","string"
-            ], 
-                "quantity"=>["required"],
-                "price"=>["required"],
-                "expiration_date"=>["required"],
+            $validatedAttributes=request()->validate([
+                "scientific_name"=>["required","string",new UniqueMedicationCombination(request()->scientific_name,request()->trade_name)],
+                "trade_name"=>["required","string"], 
+                "quantity"=>["required",'numeric','min:1'],
+                "price"=>["required",'numeric','min:0.00000001'],
+                "expiration_date"=>["required",'date','after_or_equal:today'],
                 "classification"=>["required","string"],
                 "manufacturer"=>["required","string"], 
-]);
+            ]);
+            $warehouseOwner=Auth::user();
+            
+        
+        
+            $medication=  $warehouseOwner->medications()->create($validatedAttributes);
+        
+        }
+        catch(\Illuminate\Validation\ValidationException $e){
+            return response()->json(['error'=>$e->getMessage()],422);
         }
         catch(\Exception $e){
-            return response()->json(['error'=>$e->getMessage()],400); 
+            return response()->json(['error'=>$e->getMessage()],500); 
         }
             
-        $warehouseOwner=Auth::user();
   
-        if(!$warehouseOwner)
-            return response()->json(["error"=>"dont use guard, there is an error in laravel 11"],500);
-
-
-          $medication=  $warehouseOwner->medications()->create(request()->except('_token'));
-  
-  
+        return response()->json(['msg'=>'Your medication has been created',"medication"=>$medication],201);
       
-      return response()->json(['msg'=>'Your medication has been created',"medication"=>$medication],201);
     }
     public function updatePay(Request $request,Order $order){
 
@@ -134,56 +165,57 @@ class warehouseOwnerController extends Controller
         ]);
         
 
-        $order->update([
-            'is_paid' => $request->is_paid,
-        ]);
-        $order->save();
+        $order->update(['is_paid' => $request->is_paid]);
         return response()->json(['message' => 'Order payment status updated successfully',"order"=>$order], 200);
   
     }   
     public function updateStatus(Request $request,Order $order){
-        $request->validate([ 
-            'status' => ['required', Rule::in(["in_preparing",'receive','sent'])],
-        ]);
-
-        $orderDetails=$order->ordersDetails;
         try{
-            DB::beginTransaction();
-            
-            
-            for($i=0;$i<count($orderDetails);++$i){
-  
-              $scientific_name=$orderDetails[$i]->scientific_name;
-              $trade_name=$orderDetails[$i]->trade_name;
-              $orderQuantity=$orderDetails[$i]->quantity;
-              $medication = Medication::where('scientific_name', $scientific_name)->where('trade_name',$trade_name)->first();
-              
-  
-              if($orderQuantity >$medication->quantity) {
-                DB::rollBack();
-                throw new \Exception("Insufficient  quantity for $medication->scientific_name - $medication->trade_name ");
-              }  
-  
-              $medication->quantity-=$orderQuantity; 
-              $medication->save();
+            $request->validate([ 
+                'status' => ['required', Rule::in(['receive','sent']),new OrderStatusRule($order)],
+            ]);
+        }    
+        catch(ValidationException $e){// if any fail fire from OrderStatusRule , without catch error you will get 404
+            return response()->json(['error'=>$e->getMessage()],422);
+        }
+        if($request->status==="sent"){
+        
+            $orderDetails=$order->ordersDetails;
+            try{
+                DB::beginTransaction();
+                
+                
+                for($i=0;$i<count($orderDetails);++$i){
+    
+                $scientific_name=$orderDetails[$i]->scientific_name;
+                $trade_name=$orderDetails[$i]->trade_name;
+                $orderQuantity=$orderDetails[$i]->quantity;
+                $medication = Medication::where('scientific_name', $scientific_name)->where('trade_name',$trade_name)->first();
+                
+    
+                if($orderQuantity >$medication->quantity) {
+                    DB::rollBack();
+                    throw new \Exception("Insufficient  quantity for $medication->scientific_name - $medication->trade_name ");
+                }  
+    
+                $medication->decrement('quantity',$orderDetails[$i]->quantity);
+                }
+    
+                DB::commit();
+
+                $order->save();
             }
-  
-            DB::commit();
-        $order->status=$request["status"];
+            catch(\Exception $e){
+                return response()->json(['error'=>$e->getMessage()],400);//bad request
+            }
+        }            
 
-
-        $order->save();
+        $order->update(['status'=>$request["status"]]);
         return response()->json(['message' => 'Order  status updated successfully',"order"=>$order], 200);
 
-
-        }
-        catch(\Exception $e){
-            return response()->json(['error'=>$e->getMessage()],400);//bad request
-        }
     }
     public function getOrderDetails(Request $request,Order $order){
-        $orderDetails=$order->ordersDetails;
-        return response()->json(["orderDetails"=>$orderDetails]);
+        return response()->json(["orderDetails"=>$order->ordersDetails]);
 
     }
 

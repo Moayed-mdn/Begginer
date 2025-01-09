@@ -19,6 +19,7 @@ Route::controller(PharmacyController::class)->middleware('auth:sanctum')->group(
 
 
 Route::post('/login',[warehouseOwnerController::class,'authenticate']);
+Route::post('/update',[warehouseOwnerController::class,'update']);
 Route::controller(warehouseOwnerController::class)->middleware('auth:sanctum')->group(function(){
     Route::get('/medication','getMedications');
     Route::get('/expiredMedication','getExpiredMedications');
