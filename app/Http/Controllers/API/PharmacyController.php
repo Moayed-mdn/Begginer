@@ -38,7 +38,7 @@ class PharmacyController extends Controller
             return response()->json(["error"=>$e->errors()],422);
         }
         catch(\Exception $e){
-            return response()->json(['msgg'=>$e->getMessage()],500);
+            return response()->json(['error'=>$e->getMessage()],500);
         }
     }
  
@@ -52,7 +52,7 @@ class PharmacyController extends Controller
             ]);
         }
         catch(\Illuminate\Validation\ValidationException $e){
-            return response()->json(['msg'=>$e->errors()],422);
+            return response()->json(['error'=>$e->errors()],422);
         }
 
         $credentials=request()->only('phone_number','password');
@@ -108,7 +108,7 @@ class PharmacyController extends Controller
 
             return response()->json(['message' => 'order created successfully', 'order' => $user->orders->find($order->id)], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
+            return response()->json(['error' => $e->errors()], 422);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Something went wrong'], 500); 
         }
@@ -196,6 +196,8 @@ class PharmacyController extends Controller
 
     }
 
-
+    public function checkToken(){
+        return true;
+    }
 
 }

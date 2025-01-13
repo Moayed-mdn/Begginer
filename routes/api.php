@@ -15,6 +15,7 @@ Route::controller(PharmacyController::class)->middleware('auth:sanctum')->group(
     Route::get('/pharmacy/{pharmacy}/favorite/medications',"getFavoriteMedications");
     Route::post('/pharmacy/{pharmacy}/favorite/medication','toggleFavorite');
     Route::get('/pharmacy/medications','getMedications');
+    Route::get('/pharmacy/check-token','checkToken');
 });
 
 
